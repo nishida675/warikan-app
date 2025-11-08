@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';//認証機能のインポート
+import { getAuth, signInAnonymously } from 'firebase/auth';//認証機能のインポート
 import { getFirestore } from 'firebase/firestore';//DB機能のインポート
 
 const firebaseConfig = {//.env.localの内容を読み込むよう設定
@@ -14,4 +14,17 @@ const firebaseConfig = {//.env.localの内容を読み込むよう設定
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);//認証機能の定義
 export const db = getFirestore(app);//DB機能の定義
-export const collectionName = "users_learnings"; // Firestoreコレクション名
+export const collectionName = "warikan"; // Firestoreコレクション名
+
+//アプリ起動時に匿名ログインする関数
+export const initAnonymousAuth = async () => {
+  try {
+    const userCredential = await signInAnonymously(auth);
+     const user = userCredential.user;
+    //IDトークンを取得
+    const idToken = await user.getIdToken();
+    return idToken;
+  } catch (error) {
+    console.error("ログイン失敗:", error);
+  }
+};
