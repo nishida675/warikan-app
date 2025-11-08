@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Copy } from "lucide-react";
-import React from "react";
+import { CheckCircle, Copy, Check } from "lucide-react";
 
 const GroupCreatingSuccessfulPage = ({
   params,
@@ -11,12 +10,16 @@ const GroupCreatingSuccessfulPage = ({
   params: Promise<{ projectId: string }>;
 }) => {
   const router = useRouter();
-  const { projectId } = React.use(params);
-
+  const { projectId } = use(params);
+  const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    setShareUrl(`${window.location.origin}/Group/${projectId}`);
+  }, [projectId]);
+
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(projectId);
+    await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -31,26 +34,30 @@ const GroupCreatingSuccessfulPage = ({
         <p className="text-slate-600 mb-6">
           以下のurlをコピーして共有してください。
         </p>
-
         <div className="flex items-center justify-between bg-slate-100 border border-slate-300 rounded-xl p-3 mb-6">
-          <span className="font-mono text-sm text-slate-800">{projectId}</span>
+          <span className="font-mono text-sm text-slate-800">{shareUrl}</span>
+
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 px-3 py-1 text-sm border border-slate-700 rounded-lg hover:bg-slate-800/10 transition"
+            className="flex items-center gap-2 px-3 py-1 border border-slate-700 rounded-lg hover:bg-slate-800/10 transition"
           >
-            <Copy className="w-4 h-4" />
-            {copied ? "コピー済み" : "コピー"}
+            {copied ? (
+              <Check className="w-4 h-4 text-green-600" strokeWidth={4} />
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+              </>
+            )}
           </button>
         </div>
-
         <button
-          onClick={() => router.push(`/`)}
+          onClick={() => router.push(`/Group/${projectId}`)}
           className="
-    w-full py-3 rounded-xl text-lg font-semibold
-    border border-slate-800 text-slate-800 bg-transparent
-    hover:bg-slate-800 hover:text-white
-    transition-colors duration-200
-  "
+            w-full py-3 rounded-xl text-lg font-semibold
+            border border-slate-800 text-slate-800 bg-transparent
+            hover:bg-slate-800 hover:text-white
+            transition-colors duration-200
+          "
         >
           グループページへ進む
         </button>

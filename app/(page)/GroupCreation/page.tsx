@@ -1,14 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { initAnonymousAuth } from "../../lib/firebase";
+import { createGroup } from "@/app/components/model/createGroup";
+import { useLoginId } from "@/app/components/hooks/useLoginId";
 
 const GroupCreationPage = () => {
   const [groupName, setGroupName] = useState("");
   const [memberName, setMemberName] = useState("");
   const [members, setMembers] = useState<string[]>([]);
   const router = useRouter();
+  const { setLoginId } = useLoginId();
 
+  // Firebase匿名認証の初期化
+  useEffect(() => {
+    const init = async () => {
+      const idToken = await initAnonymousAuth();
+      setLoginId(idToken); // トークンを保存
+    };
+    init();
+  }, [setLoginId]);
   // メンバー追加
   const addMember = () => {
     if (memberName.trim() === "") return;
@@ -22,18 +34,22 @@ const GroupCreationPage = () => {
   };
 
   // フォーム送信
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (members.length === 0) {
       alert("少なくとも1人のメンバーを追加してください。");
       return;
     }
-    // ここでグループ作成のロジックを実装（例: API呼び出し）
 
-    // {projectId}の取得
-    const projectId = "exampleProjectId"; // 実際には適切な方法で取得してください
-    router.push(`/GroupCreatingSuccessful/${projectId}`); // ページ遷移
+    const result = await createGroup(groupName, members);
+
+    if (!result.success) {
+      alert(result.error);
+      return;
+    }
+
+    router.push(`/GroupCreatingSuccessful/${result.id}`);
   };
 
   return (
