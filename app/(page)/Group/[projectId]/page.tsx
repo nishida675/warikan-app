@@ -1,8 +1,18 @@
 "use client";
-import { useState, use, useEffect } from "react";
+
+import { useState, useEffect, use, useContext, useMemo } from "react";
 import { Edit3, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useProjectId } from "@/app/components/hooks/useProjectId";
+import { GroupContext } from "@/app/components/provider/GroupProvider";
+import { ExpenseContext } from "@/app/components/provider/ExpenseProvider";
+import Loading from "@/app/loading";
+import { DeleteExpense } from "@/app/components/model/DeleteExpense";
+import {
+  getProject,
+  getUsers,
+  getExpenses,
+} from "@/app/components/model/GetProjectData";
 import ExpenseCard from "@/app/components/ui/ExpenseCard";
 import ExpenseCardHeader from "@/app/components/ui/ExpenseCardHeader";
 import ExpenseCardContent from "@/app/components/ui/ExpenseCardContent";
@@ -10,39 +20,75 @@ import ExpenseCardContent from "@/app/components/ui/ExpenseCardContent";
 const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
   const { projectId } = use(params);
   const { projectId: currentId, setProjectId } = useProjectId();
+  const [isLoading, setIsLoading] = useState(true);
+  const { groupName, setGroupName, members, setMembers } =
+    useContext(GroupContext);
+  const { expenses, setExpenses } = useContext(ExpenseContext);
   const router = useRouter();
 
+  const memberMap = useMemo(() => {
+    const map = new Map<string, string>();
+    members.forEach((m) => map.set(m.id, m.name));
+    return map;
+  }, [members]);
+
+  const getParticipantNames = (participantIds: string[]) =>
+    participantIds.map((id) => memberMap.get(id) ?? "不明");
+
+  // Firestoreからプロジェクト名とユーザー一覧を取得
   useEffect(() => {
-    if (currentId !== projectId) {
+    if (!projectId) return;
+    if (!currentId || projectId !== currentId) {
       setProjectId(projectId);
     }
-  }, [projectId, currentId, setProjectId]);
 
-  const [group] = useState({
-    name: "旅行メンバー",
-    members: ["太郎", "花子", "健"],
-  });
+    const fetchProjectData = async () => {
+      try {
+        const targetId = currentId ?? projectId;
 
-  const [expenses, setExpenses] = useState([
-    {
-      id: 1,
-      title: "ホテル代",
-      amount: 12000,
-      payer: "太郎",
-      beneficiaries: ["花子", "健"],
-    },
-    {
-      id: 2,
-      title: "夕食代",
-      amount: 8000,
-      payer: "花子",
-      beneficiaries: ["太郎", "健"],
-    },
-  ]);
+        const projectData = await getProject(targetId);
+        if (!projectData) {
+          console.log("プロジェクトが見つかりません");
+          return;
+        }
+
+        const users = await getUsers(targetId);
+        const expenses = await getExpenses(targetId);
+
+        setGroupName(projectData.name || "未設定のプロジェクト");
+        setMembers(users);
+        setExpenses(expenses);
+      } catch (error) {
+        console.error("Firestore取得エラー:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProjectData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   const handleAddExpense = () => {
     router.push(`/Group/${projectId}/expense/new`);
   };
+
+  //立て替え削除処理
+  const handleDeleteExpense = async (expenseId: string) => {
+    if (!projectId) {
+      alert("プロジェクトIDがありません");
+      return;
+    }
+    // Firestore のドキュメント削除
+    const isDelete = await DeleteExpense(projectId, expenseId);
+    // ローカル state からも削除
+    if (isDelete) {
+      setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
+    } else {
+      alert("立て替えの削除に失敗しました。");
+    }
+  };
+
+  if (isLoading) return <Loading />;
 
   return (
     <main className="min-h-[70vh] flex flex-col items-center justify-start bg-slate-50 px-4 py-10 space-y-6">
@@ -52,7 +98,7 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
         <ExpenseCard className="shadow-md">
           <ExpenseCardHeader className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-slate-800 leading-tight">
-              {group.name}
+              {groupName}
             </h2>
             <button
               type="button"
@@ -70,7 +116,9 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
           <ExpenseCardContent>
             <p className="text-gray-700">
               <span className="font-semibold">メンバー：</span>
-              {group.members.join("、")}
+              {members.length > 0
+                ? members.map((member) => member.name).join("、")
+                : "メンバー未登録"}
             </p>
           </ExpenseCardContent>
         </ExpenseCard>
@@ -97,11 +145,16 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
 
       {/* 下部：立て替えリスト（外の別カード） */}
       <div className="w-full max-w-xl space-y-4">
+        {expenses.length === 0 && (
+          <p className="text-center text-gray-500">
+            まだ立て替えは登録されていません。
+          </p>
+        )}
         {expenses.map((expense) => (
           <ExpenseCard key={expense.id} className="relative shadow-lg border">
-            {/* 右上のバツボタン */}
             <button
               type="button"
+              onClick={() => handleDeleteExpense(expense.id)}
               className="
                 absolute top-3 right-3
                 w-8 h-8 flex items-center justify-center 
@@ -115,9 +168,8 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
             </button>
 
             <ExpenseCardHeader className="flex items-center gap-2 mb-2">
-              {/* タイトルと編集ボタンを横並び */}
               <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2">
-                {expense.title}
+                {expense.description}
                 <button
                   type="button"
                   className="
@@ -134,10 +186,11 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
             </ExpenseCardHeader>
 
             <ExpenseCardContent>
-              {/* 金額を右寄せで強調表示 */}
               <div className="flex justify-between items-center mb-2">
                 <p className="text-gray-700">
-                  <span className="font-semibold">{expense.payer}</span>{" "}
+                  <span className="font-semibold">
+                    {memberMap.get(expense.payerId) ?? "不明"}
+                  </span>{" "}
                   が立て替えました
                 </p>
                 <p className="text-xl font-bold text-slate-800">
@@ -145,15 +198,14 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
                 </p>
               </div>
 
-              {/* 対象メンバー（丸でイニシャル表示） */}
               <div className="flex items-center mt-2">
-                {expense.beneficiaries.map((name) => (
+                {getParticipantNames(expense.participants).map((name) => (
                   <div
                     key={name}
                     className="
-                        w-8 h-8 flex items-center justify-center 
-                        rounded-full bg-indigo-100 text-indigo-700 
-                        font-semibold text-sm
+                      w-8 h-8 flex items-center justify-center 
+                      rounded-full bg-indigo-100 text-indigo-700 
+                      font-semibold text-sm
                     "
                     title={name}
                   >
@@ -164,6 +216,30 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
             </ExpenseCardContent>
           </ExpenseCard>
         ))}
+        {/* ✅ 清算方法セクション */}
+        {expenses.length > 0 && (
+          <div className="mt-10 p-6 bg-white rounded-2xl shadow-md border border-slate-100">
+            <h3 className="text-xl font-bold text-slate-800 mb-4">清算方法</h3>
+
+            {/* 仮の清算リスト例 */}
+            <ul className="space-y-3">
+              <li className="flex justify-between text-slate-700">
+                <span>
+                  <span className="font-semibold">田中</span> →{" "}
+                  <span className="font-semibold">佐藤</span>
+                </span>
+                <span className="font-bold">¥2,000</span>
+              </li>
+              <li className="flex justify-between text-slate-700">
+                <span>
+                  <span className="font-semibold">鈴木</span> →{" "}
+                  <span className="font-semibold">田中</span>
+                </span>
+                <span className="font-bold">¥1,000</span>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
     </main>
   );

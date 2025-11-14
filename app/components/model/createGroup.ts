@@ -2,11 +2,10 @@ import { db } from "@/app/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 // ✅ グループ作成関数
-export const createGroup = async (groupName: string, members: string[]) => {
+export const CreateGroup = async (groupName: string, members: string[]) => {
   try {
-    const date = new Date().toISOString().split("T")[0];
     // projects コレクションにプロジェクト追加
-    const projectRef = await addDoc(collection(db, `projects_${date}`), {
+    const projectRef = await addDoc(collection(db, `warikan`), {
       name: groupName,
       createdAt: serverTimestamp(),
     });
