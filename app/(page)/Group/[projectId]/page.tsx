@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useProjectId } from "@/app/components/hooks/useProjectId";
 import { GroupContext } from "@/app/components/provider/GroupProvider";
 import { ExpenseContext } from "@/app/components/provider/ExpenseProvider";
+import { calculateSettlements } from "@/app/components/calculateSettlements";
+import SettlementList from "@/app/components/ui/Settlement";
 import Loading from "@/app/loading";
 import { DeleteExpense } from "@/app/components/model/DeleteExpense";
 import {
@@ -25,6 +27,11 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
     useContext(GroupContext);
   const { expenses, setExpenses } = useContext(ExpenseContext);
   const router = useRouter();
+  
+  const settlements = useMemo(() => {
+    if (expenses.length === 0) return [];
+    return calculateSettlements(members, expenses);
+  }, [members, expenses]);
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -217,29 +224,7 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
           </ExpenseCard>
         ))}
         {/* ✅ 清算方法セクション */}
-        {expenses.length > 0 && (
-          <div className="mt-10 p-6 bg-white rounded-2xl shadow-md border border-slate-100">
-            <h3 className="text-xl font-bold text-slate-800 mb-4">清算方法</h3>
-
-            {/* 仮の清算リスト例 */}
-            <ul className="space-y-3">
-              <li className="flex justify-between text-slate-700">
-                <span>
-                  <span className="font-semibold">田中</span> →{" "}
-                  <span className="font-semibold">佐藤</span>
-                </span>
-                <span className="font-bold">¥2,000</span>
-              </li>
-              <li className="flex justify-between text-slate-700">
-                <span>
-                  <span className="font-semibold">鈴木</span> →{" "}
-                  <span className="font-semibold">田中</span>
-                </span>
-                <span className="font-bold">¥1,000</span>
-              </li>
-            </ul>
-          </div>
-        )}
+        {expenses.length > 0 && <SettlementList settlements={settlements} />}
       </div>
     </main>
   );

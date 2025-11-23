@@ -22,3 +22,9 @@ export type Expense = {
   participants: string[];
   createdAt?: string;
 };
+
+export type Settlement = {
+  from: string;
+  to: string;
+  amount: number;
+};
