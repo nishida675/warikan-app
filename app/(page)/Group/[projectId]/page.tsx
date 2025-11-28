@@ -4,17 +4,13 @@ import { useState, useEffect, use, useContext, useMemo } from "react";
 import { Edit3, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useProjectId } from "@/app/components/hooks/useProjectId";
-import { GroupContext } from "@/app/components/provider/GroupProvider";
+import { GroupContext, GroupData } from "@/app/components/provider/GroupProvider";
 import { ExpenseContext } from "@/app/components/provider/ExpenseProvider";
 import { calculateSettlements } from "@/app/components/calculateSettlements";
 import SettlementList from "@/app/components/ui/Settlement";
 import Loading from "@/app/loading";
 import { DeleteExpense } from "@/app/components/model/DeleteExpense";
-import {
-  getProject,
-  getUsers,
-  getExpenses,
-} from "@/app/components/model/GetProjectData";
+import { getProject, getUsers, getExpenses } from "@/app/components/model/GetProjectData";
 import ExpenseCard from "@/app/components/ui/ExpenseCard";
 import ExpenseCardHeader from "@/app/components/ui/ExpenseCardHeader";
 import ExpenseCardContent from "@/app/components/ui/ExpenseCardContent";
@@ -22,12 +18,20 @@ import ExpenseCardContent from "@/app/components/ui/ExpenseCardContent";
 const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
   const { projectId } = use(params);
   const { projectId: currentId, setProjectId } = useProjectId();
-  const [isLoading, setIsLoading] = useState(true);
-  const { groupName, setGroupName, members, setMembers } =
-    useContext(GroupContext);
+  const { groups, setGroups } = useContext(GroupContext);
   const { expenses, setExpenses } = useContext(ExpenseContext);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  
+
+  // 対象グループを取得
+  const currentGroup = useMemo<GroupData | undefined>(
+    () => groups.find((g) => g.projectId === projectId),
+    [groups, projectId]
+  );
+
+  const members = useMemo(() => currentGroup?.members || [], [currentGroup?.members]);
+  const groupName = currentGroup?.groupName || "未設定のプロジェクト";
+
   const settlements = useMemo(() => {
     if (expenses.length === 0) return [];
     return calculateSettlements(members, expenses);
@@ -62,8 +66,25 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
         const users = await getUsers(targetId);
         const expenses = await getExpenses(targetId);
 
-        setGroupName(projectData.name || "未設定のプロジェクト");
-        setMembers(users);
+        // ✅ groups 配列を更新
+        setGroups((prev) => {
+          const exists = prev.find((g) => g.projectId === targetId);
+          if (exists) {
+            // 既存のグループを更新
+            return prev.map((g) =>
+              g.projectId === targetId
+                ? { ...g, groupName: projectData.name || "未設定のプロジェクト", members: users }
+                : g
+            );
+          } else {
+            // 新規追加
+            return [
+              ...prev,
+              { projectId: targetId, groupName: projectData.name || "未設定のプロジェクト", members: users }
+            ];
+          }
+        });
+
         setExpenses(expenses);
       } catch (error) {
         console.error("Firestore取得エラー:", error);
@@ -79,15 +100,13 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
     router.push(`/Group/${projectId}/expense/new`);
   };
 
-  //立て替え削除処理
+  // 立て替え削除処理
   const handleDeleteExpense = async (expenseId: string) => {
     if (!projectId) {
       alert("プロジェクトIDがありません");
       return;
     }
-    // Firestore のドキュメント削除
     const isDelete = await DeleteExpense(projectId, expenseId);
-    // ローカル state からも削除
     if (isDelete) {
       setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
     } else {
@@ -105,14 +124,12 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
 
   return (
     <main className="min-h-[70vh] flex flex-col items-center justify-start bg-slate-50 px-4 py-10 space-y-6">
-      {/* 上部ブロック（白背景・グループ情報など） */}
+      {/* 上部ブロック */}
       <div className="bg-white rounded-3xl shadow-lg border border-slate-100 p-10 w-full max-w-xl space-y-6">
         {/* グループ情報 */}
         <ExpenseCard className="shadow-md">
           <ExpenseCardHeader className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-slate-800 leading-tight">
-              {groupName}
-            </h2>
+            <h2 className="text-2xl font-bold text-slate-800 leading-tight">{groupName}</h2>
             <button
               type="button"
               onClick={() => router.push(`/Group/${projectId}/group-edit`)} // ← ここも追加OK
@@ -130,9 +147,7 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
           <ExpenseCardContent>
             <p className="text-gray-700">
               <span className="font-semibold">メンバー：</span>
-              {members.length > 0
-                ? members.map((member) => member.name).join("、")
-                : "メンバー未登録"}
+              {members.length > 0 ? members.map((m) => m.name).join("、") : "メンバー未登録"}
             </p>
           </ExpenseCardContent>
         </ExpenseCard>
@@ -142,10 +157,7 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
           <button
             type="button"
             onClick={handleAddExpense}
-            className="
-              w-full py-4 rounded-xl text-lg font-semibold 
-              bg-indigo-600 text-white hover:bg-indigo-700 transition
-            "
+            className="w-full py-4 rounded-xl text-lg font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition"
           >
             立て替え追加
           </button>
@@ -159,22 +171,14 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
       {/* 下部：立て替えリスト */}
       <div className="w-full max-w-xl space-y-4">
         {expenses.length === 0 && (
-          <p className="text-center text-gray-500">
-            まだ立て替えは登録されていません。
-          </p>
+          <p className="text-center text-gray-500">まだ立て替えは登録されていません。</p>
         )}
         {expenses.map((expense) => (
           <ExpenseCard key={expense.id} className="relative shadow-lg border">
             <button
               type="button"
               onClick={() => handleDeleteExpense(expense.id)}
-              className="
-                absolute top-3 right-3
-                w-8 h-8 flex items-center justify-center 
-                rounded-full bg-red-50 text-red-500 
-                hover:bg-red-100 hover:text-red-600 
-                transition border
-                "
+              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition border"
               aria-label="削除"
             >
               <X className="w-4 h-4" />
@@ -203,25 +207,16 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
             <ExpenseCardContent>
               <div className="flex justify-between items-center mb-2">
                 <p className="text-gray-700">
-                  <span className="font-semibold">
-                    {memberMap.get(expense.payerId) ?? "不明"}
-                  </span>{" "}
-                  が立て替えました
+                  <span className="font-semibold">{memberMap.get(expense.payerId) ?? "不明"}</span> が立て替えました
                 </p>
-                <p className="text-xl font-bold text-slate-800">
-                  ¥{expense.amount.toLocaleString()}
-                </p>
+                <p className="text-xl font-bold text-slate-800">¥{expense.amount.toLocaleString()}</p>
               </div>
 
               <div className="flex items-center mt-2">
                 {getParticipantNames(expense.participants).map((name) => (
                   <div
                     key={name}
-                    className="
-                      w-8 h-8 flex items-center justify-center 
-                      rounded-full bg-indigo-100 text-indigo-700 
-                      font-semibold text-sm
-                    "
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm"
                     title={name}
                   >
                     {name.charAt(0)}
@@ -231,7 +226,7 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
             </ExpenseCardContent>
           </ExpenseCard>
         ))}
-        {/* ✅ 清算方法セクション */}
+
         {expenses.length > 0 && <SettlementList settlements={settlements} />}
       </div>
     </main>

@@ -1,30 +1,12 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import React from "react";
+import Logo from "./ui/Logo";
+import ButtonNavigate from "./ui/Button";
 
 const Header = () => {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const Logo = () => (
-    <div
-      className="flex items-center gap-2 sm:gap-3 cursor-pointer"
-      onClick={() => router.push("/")}
-    >
-      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-gradient-to-tr from-indigo-500 to-fuchsia-500 shadow-md flex items-center justify-center text-white font-semibold text-base sm:text-lg">
-        W
-      </div>
-      <div className="leading-tight">
-        <div className="text-base sm:text-lg font-semibold text-slate-900">
-          割り勘アプリ
-        </div>
-        <div className="text-xs sm:text-sm text-slate-500">
-          Split bills, simply
-        </div>
-      </div>
-    </div>
-  );
 
   if (pathname !== "/") {
     return (
@@ -43,7 +25,6 @@ const Header = () => {
       <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Logo />
-
           <div className="flex items-center gap-3 sm:gap-6">
             <a
               href="#how-to-use"
@@ -52,8 +33,8 @@ const Header = () => {
               使い方
             </a>
 
-            <button
-              onClick={() => router.push("/GroupCreation")}
+            <ButtonNavigate
+              href="/GroupCreation"
               className="
                 px-3 py-2 sm:px-6 sm:py-2.5
                 rounded-md border border-slate-800 
@@ -64,7 +45,7 @@ const Header = () => {
               "
             >
               今すぐ使う
-            </button>
+            </ButtonNavigate>
           </div>
         </div>
       </div>

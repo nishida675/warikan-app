@@ -1,27 +1,18 @@
-"use client";
-
 import Image from "next/image";
-import React from "react";
-import { useRouter } from "next/navigation";
+import { RecentGroupsSection } from "./components/ui/RecentGroupsSection";
+import ButtonNavigate from "./components/ui/Button";
 
 const HERO_IMAGE_URL = "/hero.png";
 
-const STEP_IMAGES = [
-  "/createGroup.png",
-  "/expense.png",
-  "/url.png",
-];
+const STEP_IMAGES = ["/createGroup.png", "/expense.png", "/url.png"];
 
 export default function Home() {
-  const router = useRouter();
-
   return (
     <main className="min-h-screen bg-white text-slate-800 font-sans tracking-wide leading-relaxed scroll-smooth relative overflow-hidden">
       <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-50 rounded-full blur-3xl opacity-60 -z-10 pointer-events-none" />
       <div className="absolute bottom-[10%] left-[-10%] w-[400px] h-[400px] bg-slate-100 rounded-full blur-3xl opacity-60 -z-10 pointer-events-none" />
 
-      {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-6 py-6 lg:py-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      <section className="max-w-6xl mx-auto px-6 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
         <div>
           <div className="text-xs md:text-sm inline-block mb-6 px-3 py-1 rounded-full bg-slate-50 text-slate-600 font-medium border border-slate-200">
             会員登録不要・ブラウザで完結
@@ -40,10 +31,9 @@ export default function Home() {
             アプリ不要、リンクを共有するだけで清算が完了します。
           </p>
 
-          {/* ボタンエリア */}
           <div className="mt-9 flex gap-4">
-            <button
-              onClick={() => router.push("/GroupCreation")}
+            <ButtonNavigate
+              href="/GroupCreation"
               className="
                 px-8 py-3 rounded-lg bg-slate-900 text-white
                 font-bold shadow-lg shadow-slate-200
@@ -52,12 +42,11 @@ export default function Home() {
               "
             >
               今すぐ始める
-            </button>
+            </ButtonNavigate>
           </div>
 
           <div className="mt-12 grid grid-cols-2 gap-6 text-sm md:text-base text-slate-700">
             <div className="flex items-center gap-3">
-              {/* アイコン背景も落ち着いた色味に */}
               <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-400 flex items-center justify-center font-bold text-lg">
                 ⚡
               </div>
@@ -88,41 +77,19 @@ export default function Home() {
                 width={900}
                 height={600}
                 className="object-cover w-full h-[360px] md:h-[420px]"
+                priority
               />
             </div>
           ) : (
             <div className="w-full h-[320px] md:h-[400px] rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-xl flex items-center justify-center relative">
               <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-50"></div>
-              <svg
-                width="180"
-                height="120"
-                viewBox="0 0 200 150"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="drop-shadow-md"
-              >
-                <rect
-                  x="8"
-                  y="8"
-                  width="184"
-                  height="134"
-                  rx="14"
-                  fill="#ffffff"
-                  stroke="#cbd5e1"
-                  strokeWidth="4"
-                />
-                <path
-                  d="M16 120L48 78L80 104L118 54L168 120H16Z"
-                  fill="#f1f5f9"
-                />
-                <circle cx="150" cy="40" r="15" fill="#fdba74" />
-              </svg>
             </div>
           )}
         </div>
       </section>
 
-      {/* Features Section */}
+      <RecentGroupsSection />
+
       <section className="bg-slate-50 border-y border-slate-200/60">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="text-center mb-10">
@@ -174,7 +141,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works Section */}
       <section id="how-to-use" className="max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
@@ -224,6 +190,8 @@ export default function Home() {
                   alt={`${s.title} のイメージ`}
                   fill
                   className="object-contain p-3 transition duration-500"
+                  sizes="(max-width: 768px) 100vw, 240px"
+                  priority
                 />
               </div>
             </div>
@@ -231,7 +199,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="max-w-4xl mx-auto px-6 pb-20 pt-8">
         <div className="rounded-3xl p-8 md:p-12 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -245,9 +212,8 @@ export default function Home() {
             </p>
           </div>
           <div className="relative z-10 shrink-0">
-            {/* ボタンを白背景＋黒文字に変更してシックに */}
-            <button
-              onClick={() => router.push("/GroupCreation")}
+            <ButtonNavigate
+              href="/GroupCreation"
               className="
                 px-8 py-4 rounded-full bg-white text-slate-900 
                 font-bold text-lg shadow-lg shadow-black/10
@@ -256,7 +222,7 @@ export default function Home() {
               "
             >
               無料で始める
-            </button>
+            </ButtonNavigate>
           </div>
         </div>
       </section>
