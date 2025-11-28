@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import Loading from "@/app/loading";
 import { useProjectId } from "@/app/components/hooks/useProjectId";
 import { GroupContext } from "@/app/components/provider/GroupProvider";
-import { db } from "@/app/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { addExpense } from "@/app/components/model/addExpense";
 
 export default function ExpenseNewPage() {
   const router = useRouter();
   const { projectId: currentId } = useProjectId();
-  const { members } = useContext(GroupContext);
+  const { groups } = useContext(GroupContext);
+  const currentGroup = groups.find(group => group.projectId === currentId);
+  const members = currentGroup?.members || [];
 
   const [payer, setPayer] = useState("");
   const [participants, setParticipants] = useState<string[]>([]);
@@ -41,15 +42,15 @@ export default function ExpenseNewPage() {
     setIsLoading(true);
 
     try {
-      const expenseRef = collection(db, "warikan", currentId, "expenses");
+      const result = await addExpense(
+        currentId,
+        payer,
+        Number(amount),
+        category,
+        participants
+      );
 
-      await addDoc(expenseRef, {
-        payerId: payer,
-        amount: Number(amount),
-        description: category,
-        participants: participants,
-        createdAt: serverTimestamp(),
-      });
+      if (!result.success) throw result.error;
 
       router.push(`/Group/${currentId}`);
     } catch (error) {

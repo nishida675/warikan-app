@@ -11,11 +11,15 @@ import React, {
 } from "react";
 import { Member } from "@/app/components/Type";
 
-export type GroupContextType = {
+export type GroupData = {
   groupName: string;
-  setGroupName: Dispatch<SetStateAction<string>>;
   members: Member[];
-  setMembers: Dispatch<SetStateAction<Member[]>>;
+  projectId: string;
+};
+
+export type GroupContextType = {
+  groups: GroupData[];
+  setGroups: Dispatch<SetStateAction<GroupData[]>>;
 };
 
 export const GroupContext = createContext<GroupContextType>(
@@ -23,36 +27,27 @@ export const GroupContext = createContext<GroupContextType>(
 );
 
 const GroupProviderComponent = ({ children }: { children: ReactNode }) => {
-  const [groupName, setGroupName] = useState("");
-  const [members, setMembers] = useState<Member[]>([]);
+  const [groups, setGroups] = useState<GroupData[]>([]);
 
-  // ✅ 初期読み込み：localStorage から復元
+  //初期読み込み
   useEffect(() => {
-    const savedMembers = localStorage.getItem("members");
-    const savedGroupName = localStorage.getItem("groupName");
-    if (savedMembers) {
+    const savedGroups = localStorage.getItem("groups");
+    if (savedGroups) {
       try {
-        setMembers(JSON.parse(savedMembers));
+        setGroups(JSON.parse(savedGroups));
       } catch (e) {
-        console.error("Failed to parse members:", e);
+        console.error("Failed to parse groups:", e);
       }
     }
-    if (savedGroupName) setGroupName(savedGroupName);
   }, []);
 
-  // ✅ 値変更時に保存
+  //変更時に localStorage 保存
   useEffect(() => {
-    localStorage.setItem("members", JSON.stringify(members));
-  }, [members]);
-
-  useEffect(() => {
-    localStorage.setItem("groupName", groupName);
-  }, [groupName]);
+    localStorage.setItem("groups", JSON.stringify(groups));
+  }, [groups]);
 
   return (
-    <GroupContext.Provider
-      value={{ groupName, setGroupName, members, setMembers }}
-    >
+    <GroupContext.Provider value={{ groups, setGroups }}>
       {children}
     </GroupContext.Provider>
   );
