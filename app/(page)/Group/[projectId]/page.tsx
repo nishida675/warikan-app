@@ -97,6 +97,12 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
 
   if (isLoading) return <Loading />;
 
+  // ✅ 編集ページへ遷移する関数
+  const handleEditExpense = (expenseId: number) => {
+    router.push(`/Group/${projectId}/edit?expenseId=${expenseId}`);
+    // 例: /Group/abc123/edit?expenseId=1 に遷移
+  };
+
   return (
     <main className="min-h-[70vh] flex flex-col items-center justify-start bg-slate-50 px-4 py-10 space-y-6">
       {/* 上部ブロック（白背景・グループ情報など） */}
@@ -109,6 +115,7 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
             </h2>
             <button
               type="button"
+              onClick={() => router.push(`/Group/${projectId}/group-edit`)} // ← ここも追加OK
               className="
                 w-9 h-9 flex items-center justify-center 
                 rounded-full border border-slate-300 
@@ -144,13 +151,12 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
           </button>
         </div>
 
-        {/* 注意書き */}
         <p className="text-sm text-gray-500 text-center">
           ※「立て替え追加」ボタンから登録しましょう
         </p>
       </div>
 
-      {/* 下部：立て替えリスト（外の別カード） */}
+      {/* 下部：立て替えリスト */}
       <div className="w-full max-w-xl space-y-4">
         {expenses.length === 0 && (
           <p className="text-center text-gray-500">
@@ -179,6 +185,8 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
                 {expense.description}
                 <button
                   type="button"
+                  onClick={() =>
+                  router.push(`/Group/${projectId}/expense/edit?expenseId=${expense.id}`)}// ✅ 編集ページへ遷移
                   className="
                     w-8 h-8 flex items-center justify-center 
                     rounded-full border border-slate-300 
