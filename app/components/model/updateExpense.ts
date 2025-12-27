@@ -1,6 +1,6 @@
 import { db } from "@/app/lib/firebase";
 import { doc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
-import { Expense } from "../Type";
+import { Expense } from "../type";
 
 export const updateExpense = async (
   projectId: string,

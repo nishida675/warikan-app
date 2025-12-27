@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { GroupContext } from "@/app/components/provider/GroupProvider";
 import { updateGroup } from "@/app/components/model/updateGroup";
 import { updateUsers } from "@/app/components/model/updateUsers";
-import { Member } from "@/app/components/Type";
+import { Member } from "@/app/components/type";
 import { v4 as uuidv4 } from "uuid";
 import { Users, X, Save, LayoutGrid, ChevronLeft } from "lucide-react";
 

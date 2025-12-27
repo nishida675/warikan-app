@@ -9,7 +9,7 @@ import {
   SetStateAction,
   memo,
 } from "react";
-import { Member } from "@/app/components/Type";
+import { Member } from "@/app/components/type";
 
 export type GroupData = {
   groupName: string;

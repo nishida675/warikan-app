@@ -1,4 +1,4 @@
-import { Member, Expense, Settlement } from "@/app/components/Type"; 
+import { Member, Expense, Settlement } from "@/app/components/type"; 
 
 
 export function calculateSettlements(

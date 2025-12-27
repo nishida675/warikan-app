@@ -6,7 +6,7 @@ import { GroupContext } from "@/app/components/provider/GroupProvider";
 import { ExpenseContext } from "@/app/components/provider/ExpenseProvider";
 import { updateExpense } from "@/app/components/model/updateExpense";
 import { Save, ChevronLeft } from "lucide-react";
-import { Expense } from "@/app/components/Type";
+import { Expense } from "@/app/components/type";
 
 const ExpenseEditPage = () => {
   const router = useRouter();

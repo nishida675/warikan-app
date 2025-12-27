@@ -1,5 +1,5 @@
 
-import { Settlement } from "@/app/components/Type";
+import { Settlement } from "@/app/components/type";
 
 type Props = {
   settlements: Settlement[];

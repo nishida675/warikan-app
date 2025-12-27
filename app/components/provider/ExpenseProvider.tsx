@@ -9,7 +9,7 @@ import React, {
   SetStateAction,
   memo,
 } from "react";
-import { Expense } from "@/app/components/Type";
+import { Expense } from "@/app/components/type";
 
 export type ExpenseContextType = {
   expenses: Expense[];
