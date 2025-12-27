@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 // サイトのベースURL（本番環境のドメインに変更してください）
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://demo.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://warikanapp.vercel.app/";
 const SITE_NAME = "割り勘アプリ";
 const SITE_DESCRIPTION = "面倒な割り勘計算を数秒で完了。会員登録不要・アプリインストール不要。旅行、BBQ、飲み会、イベントの立替費用をURL共有だけでスマートに精算できる無料のWebアプリです。";
 
