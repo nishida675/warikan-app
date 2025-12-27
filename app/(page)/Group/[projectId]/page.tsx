@@ -4,20 +4,27 @@ import { useState, useEffect, use, useContext, useMemo } from "react";
 import { Edit3, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useProjectId } from "@/app/components/hooks/useProjectId";
-import { GroupContext, GroupData } from "@/app/components/provider/GroupProvider";
+import {
+  GroupContext,
+  GroupData,
+} from "@/app/components/provider/GroupProvider";
 import { ExpenseContext } from "@/app/components/provider/ExpenseProvider";
 import { calculateSettlements } from "@/app/components/calculateSettlements";
 import SettlementList from "@/app/components/ui/Settlement";
 import Loading from "@/app/loading";
 import { DeleteExpense } from "@/app/components/model/DeleteExpense";
-import { getProject, getUsers, getExpenses } from "@/app/components/model/GetProjectData";
+import {
+  getProject,
+  getUsers,
+  getExpenses,
+} from "@/app/components/model/GetProjectData";
 import ExpenseCard from "@/app/components/ui/ExpenseCard";
 import ExpenseCardHeader from "@/app/components/ui/ExpenseCardHeader";
 import ExpenseCardContent from "@/app/components/ui/ExpenseCardContent";
 
 const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
   const { projectId } = use(params);
-  const { projectId: currentId, setProjectId } = useProjectId();
+  const { projectId: currentId } = useProjectId();
   const { groups, setGroups } = useContext(GroupContext);
   const { expenses, setExpenses } = useContext(ExpenseContext);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,11 +32,14 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
 
   // 対象グループを取得
   const currentGroup = useMemo<GroupData | undefined>(
-    () => groups.find((g) => g.projectId === projectId),
+    () => (groups ?? []).find((g) => g.projectId === projectId),
     [groups, projectId]
   );
 
-  const members = useMemo(() => currentGroup?.members || [], [currentGroup?.members]);
+  const members = useMemo(
+    () => currentGroup?.members || [],
+    [currentGroup?.members]
+  );
   const groupName = currentGroup?.groupName || "未設定のプロジェクト";
 
   const settlements = useMemo(() => {
@@ -49,52 +59,60 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
   // Firestoreからプロジェクト名とユーザー一覧を取得
   useEffect(() => {
     if (!projectId) return;
-    if (!currentId || projectId !== currentId) {
-      setProjectId(projectId);
-    }
+
+    let cancelled = false;
 
     const fetchProjectData = async () => {
       try {
         const targetId = currentId ?? projectId;
 
         const projectData = await getProject(targetId);
-        if (!projectData) {
-          console.log("プロジェクトが見つかりません");
-          return;
-        }
+        if (!projectData) return;
 
         const users = await getUsers(targetId);
         const expenses = await getExpenses(targetId);
 
-        // ✅ groups 配列を更新
-        setGroups((prev) => {
-          const exists = prev.find((g) => g.projectId === targetId);
-          if (exists) {
-            // 既存のグループを更新
-            return prev.map((g) =>
-              g.projectId === targetId
-                ? { ...g, groupName: projectData.name || "未設定のプロジェクト", members: users }
-                : g
-            );
-          } else {
-            // 新規追加
-            return [
-              ...prev,
-              { projectId: targetId, groupName: projectData.name || "未設定のプロジェクト", members: users }
-            ];
-          }
-        });
+        if (!cancelled) {
+          setGroups((prev) => {
+            const list = prev ?? [];
+            const exists = list.find((g) => g.projectId === targetId);
+            if (exists) {
+              return list.map((g) =>
+                g.projectId === targetId
+                  ? {
+                      ...g,
+                      groupName: projectData.name || "未設定",
+                      members: users,
+                    }
+                  : g
+              );
+            } else {
+              return [
+                ...list,
+                {
+                  projectId: targetId,
+                  groupName: projectData.name || "未設定",
+                  members: users,
+                },
+              ];
+            }
+          });
 
-        setExpenses(expenses);
+          setExpenses(expenses);
+        }
       } catch (error) {
         console.error("Firestore取得エラー:", error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
+
     fetchProjectData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, currentId, setGroups, setExpenses]); 
 
   const handleAddExpense = () => {
     router.push(`/Group/${projectId}/expense/new`);
@@ -129,7 +147,9 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
         {/* グループ情報 */}
         <ExpenseCard className="shadow-md">
           <ExpenseCardHeader className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-slate-800 leading-tight">{groupName}</h2>
+            <h2 className="text-2xl font-bold text-slate-800 leading-tight">
+              {groupName}
+            </h2>
             <button
               type="button"
               onClick={() => router.push(`/Group/${projectId}/group-edit`)} // ← ここも追加OK
@@ -147,7 +167,9 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
           <ExpenseCardContent>
             <p className="text-gray-700">
               <span className="font-semibold">メンバー：</span>
-              {members.length > 0 ? members.map((m) => m.name).join("、") : "メンバー未登録"}
+              {members.length > 0
+                ? members.map((m) => m.name).join("、")
+                : "メンバー未登録"}
             </p>
           </ExpenseCardContent>
         </ExpenseCard>
@@ -171,7 +193,9 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
       {/* 下部：立て替えリスト */}
       <div className="w-full max-w-xl space-y-4">
         {expenses.length === 0 && (
-          <p className="text-center text-gray-500">まだ立て替えは登録されていません。</p>
+          <p className="text-center text-gray-500">
+            まだ立て替えは登録されていません。
+          </p>
         )}
         {expenses.map((expense) => (
           <ExpenseCard key={expense.id} className="relative shadow-lg border">
@@ -207,9 +231,14 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
             <ExpenseCardContent>
               <div className="flex justify-between items-center mb-2">
                 <p className="text-gray-700">
-                  <span className="font-semibold">{memberMap.get(expense.payerId) ?? "不明"}</span> が立て替えました
+                  <span className="font-semibold">
+                    {memberMap.get(expense.payerId) ?? "不明"}
+                  </span>{" "}
+                  が立て替えました
                 </p>
-                <p className="text-xl font-bold text-slate-800">¥{expense.amount.toLocaleString()}</p>
+                <p className="text-xl font-bold text-slate-800">
+                  ¥{expense.amount.toLocaleString()}
+                </p>
               </div>
 
               <div className="flex items-center mt-2">

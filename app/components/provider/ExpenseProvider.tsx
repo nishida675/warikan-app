@@ -16,26 +16,26 @@ export type ExpenseContextType = {
   setExpenses: Dispatch<SetStateAction<Expense[]>>;
 };
 
-export const ExpenseContext = createContext<ExpenseContextType>(
-  {} as ExpenseContextType
-);
+// 初期値は空配列
+export const ExpenseContext = createContext<ExpenseContextType>({
+  expenses: [],
+  setExpenses: () => {},
+});
 
 const ExpenseProviderComponent = ({ children }: { children: ReactNode }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  // 初期読み込み：localStorage から復元
+  // 初回ロード（CSRのみ）
   useEffect(() => {
-    const savedExpenses = localStorage.getItem("expenses");
-    if (savedExpenses) {
-      try {
-        setExpenses(JSON.parse(savedExpenses));
-      } catch (e) {
-        console.error("Failed to parse expenses:", e);
-      }
+    try {
+      const saved = localStorage.getItem("expenses");
+      if (saved) setExpenses(JSON.parse(saved));
+    } catch (e) {
+      console.error("Failed to parse expenses:", e);
     }
   }, []);
 
-  // 値変更時に localStorage に保存
+  // expenses が変わったら localStorage に保存
   useEffect(() => {
     localStorage.setItem("expenses", JSON.stringify(expenses));
   }, [expenses]);
