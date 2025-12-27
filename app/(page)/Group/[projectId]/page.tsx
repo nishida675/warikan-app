@@ -100,12 +100,41 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
 
           setExpenses(expenses);
         }
+        if (!cancelled) {
+          setGroups((prev) => {
+            const list = prev ?? [];
+            const exists = list.find((g) => g.projectId === targetId);
+            if (exists) {
+              return list.map((g) =>
+                g.projectId === targetId
+                  ? {
+                      ...g,
+                      groupName: projectData.name || "未設定",
+                      members: users,
+                    }
+                  : g
+              );
+            } else {
+              return [
+                ...list,
+                {
+                  projectId: targetId,
+                  groupName: projectData.name || "未設定",
+                  members: users,
+                },
+              ];
+            }
+          });
+
+          setExpenses(expenses);
+        }
       } catch (error) {
         console.error("Firestore取得エラー:", error);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     };
+
 
     fetchProjectData();
 
@@ -146,7 +175,6 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
             </h2>
             <button
               type="button"
-              onClick={() => router.push(`/Group/${projectId}/group-edit`)} // ← ここも追加OK
               className="
                 w-9 h-9 flex items-center justify-center 
                 rounded-full border border-slate-300 
@@ -207,8 +235,6 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
                 {expense.description}
                 <button
                   type="button"
-                  onClick={() =>
-                  router.push(`/Group/${projectId}/expense/edit?expenseId=${expense.id}&projectId=${projectId}`)}// ✅ 編集ページへ遷移
                   className="
                     w-8 h-8 flex items-center justify-center 
                     rounded-full border border-slate-300 
@@ -238,8 +264,12 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
               <div className="flex items-center mt-2">
                 {getParticipantNames(expense.participants).map((name, index) => (
                   <div
-                    key={`${name}-${index}`}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm"
+                    key={name}
+                    className="
+                      w-8 h-8 flex items-center justify-center 
+                      rounded-full bg-indigo-100 text-indigo-700 
+                      font-semibold text-sm
+                    "
                     title={name}
                   >
                     {name.charAt(0)}
