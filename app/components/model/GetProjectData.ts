@@ -1,5 +1,5 @@
-import { Expense } from "@/app/components/Type";
-import { Member, Project } from "@/app/components/Type";
+import { Expense } from "@/app/components/type";
+import { Member, Project } from "@/app/components/type";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 

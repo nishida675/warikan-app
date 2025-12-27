@@ -1,6 +1,6 @@
 import { db } from "@/app/lib/firebase";
 import { collection, doc, updateDoc, addDoc, serverTimestamp, getDoc } from "firebase/firestore";
-import { Member } from "@/app/components/Type";
+import { Member } from "@/app/components/type";
 
 export const updateUsers = async (projectId: string, members: Member[]) => {
   try {
