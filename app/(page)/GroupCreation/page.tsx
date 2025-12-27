@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { initAnonymousAuth } from "../../lib/firebase";
 import Loading from "@/app/loading";
-import { CreateGroup } from "@/app/components/model/CreateGroup";
+import { CreateGroup } from "@/app/components/model/createGroup";
 import { useLoginId } from "@/app/components/hooks/useLoginId";
 
 const GroupCreationPage = () => {
