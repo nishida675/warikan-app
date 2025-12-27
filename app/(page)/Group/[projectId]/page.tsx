@@ -134,12 +134,6 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
 
   if (isLoading) return <Loading />;
 
-  // ✅ 編集ページへ遷移する関数
-  const handleEditExpense = (expenseId: number) => {
-    router.push(`/Group/${projectId}/edit?expenseId=${expenseId}`);
-    // 例: /Group/abc123/edit?expenseId=1 に遷移
-  };
-
   return (
     <main className="min-h-[70vh] flex flex-col items-center justify-start bg-slate-50 px-4 py-10 space-y-6">
       {/* 上部ブロック */}
@@ -214,7 +208,7 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
                 <button
                   type="button"
                   onClick={() =>
-                  router.push(`/Group/${projectId}/expense/edit?expenseId=${expense.id}`)}// ✅ 編集ページへ遷移
+                  router.push(`/Group/${projectId}/expense/edit?expenseId=${expense.id}&projectId=${projectId}`)}// ✅ 編集ページへ遷移
                   className="
                     w-8 h-8 flex items-center justify-center 
                     rounded-full border border-slate-300 
@@ -242,9 +236,9 @@ const GroupPage = ({ params }: { params: Promise<{ projectId: string }> }) => {
               </div>
 
               <div className="flex items-center mt-2">
-                {getParticipantNames(expense.participants).map((name) => (
+                {getParticipantNames(expense.participants).map((name, index) => (
                   <div
-                    key={name}
+                    key={`${name}-${index}`}
                     className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm"
                     title={name}
                   >

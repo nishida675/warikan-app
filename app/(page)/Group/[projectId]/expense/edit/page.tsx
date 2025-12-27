@@ -1,110 +1,196 @@
 "use client";
 
-import { useContext, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useContext, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GroupContext } from "@/app/components/provider/GroupProvider";
-import { updateGroup } from "@/app/components/model/UpdateGroup";
-import { updateUsers } from "@/app/components/model/UpdateUsers";
+import { ExpenseContext } from "@/app/components/provider/ExpenseProvider";
+import { updateExpense } from "@/app/components/model/updateExpense";
+import { Save, ChevronLeft } from "lucide-react";
+import { Expense } from "@/app/components/Type";
 
-const GroupEditPage = ({ params }: { params: { projectId: string } }) => {
+const ExpenseEditPage = () => {
   const router = useRouter();
-  const { projectId } = params;
+  const searchParams = useSearchParams();
+  const expenseId = searchParams.get("expenseId");
+  const projectId = searchParams.get("projectId");
+  const { groups } = useContext(GroupContext);
+  const { expenses, setExpenses } = useContext(ExpenseContext);
 
-  const { groupName, setGroupName, members, setMembers } =
-    useContext(GroupContext);
+  const members = useMemo(() => {
+    if (!groups || !projectId) return [];
+    const currentGroup = groups.find((g) => g.projectId === projectId);
+    return currentGroup?.members ?? [];
+  }, [groups, projectId]);
 
-  // 🔹 編集用ローカル state
-  const [name, setName] = useState(groupName);
-  const [localMembers, setLocalMembers] = useState(members);
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState<number>(0);
+  const [payerId, setPayerId] = useState<string>("");
+  const [participants, setParticipants] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ===== メンバー名変更 =====
-  const handleChangeMember = (index: number, value: string) => {
-    const updated = [...localMembers];
-    updated[index] = { ...updated[index], name: value };
-    setLocalMembers(updated);
+  useEffect(() => {
+    if (!expenseId) return;
+    const expense = expenses.find((e) => e.id === expenseId);
+    if (expense) {
+      setDescription(expense.description);
+      setAmount(expense.amount);
+      setPayerId(expense.payerId);
+      setParticipants(expense.participants);
+    }
+  }, [expenseId, expenses]);
+
+  const toggleParticipant = (id: string) => {
+    setParticipants((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
   };
 
-  // ===== メンバー削除 =====
-  const handleDeleteMember = (index: number) => {
-    setLocalMembers((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleSave = async () => {
+    if (!projectId || !expenseId) return;
+    if (!description.trim() || amount <= 0 || !payerId) {
+      alert("必要項目を入力してください");
+      return;
+    }
 
-  // ===== 更新 =====
-  const handleUpdate = async () => {
     setLoading(true);
 
-    const okGroup = await updateGroup(projectId, name);
-    const okUsers = await updateUsers(projectId, localMembers);
+    const success = await updateExpense(projectId, expenseId, {
+      description,
+      amount,
+      payerId,
+      participants,
+    } as Omit<Expense, "id" | "createdAt">);
 
-    if (okGroup && okUsers) {
-      // ✅ Context 更新
-      setGroupName(name);
-      setMembers(localMembers);
-
-      alert("グループ情報を更新しました");
+    if (success) {
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id === expenseId
+            ? { ...e, description, amount, payerId, participants }
+            : e
+        )
+      );
       router.back();
     } else {
-      alert("更新に失敗しました");
+      alert(
+        "更新に失敗しました。Firestore上にドキュメントが存在するか確認してください。"
+      );
     }
 
     setLoading(false);
   };
 
   return (
-    <main className="max-w-md mx-auto bg-white p-6 rounded-2xl shadow space-y-6">
-      <h2 className="text-xl font-bold">グループ編集</h2>
-
-      {/* グループ名 */}
-      <div>
-        <label className="text-sm text-gray-500">グループ名</label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1"
-        />
-      </div>
-
-      {/* メンバー */}
-      <div>
-        <p className="text-sm text-gray-500 mb-2">メンバー</p>
-        {localMembers.map((m, i) => (
-          <div key={m.id} className="flex gap-2 mb-2">
-            <input
-              value={m.name}
-              onChange={(e) =>
-                handleChangeMember(i, e.target.value)
-              }
-              className="flex-1 border rounded px-2 py-1"
-            />
-            <button
-              onClick={() => handleDeleteMember(i)}
-              className="text-red-500"
-            >
-              削除
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* 操作 */}
-      <div className="flex gap-3">
+    <div className="max-w-xl mx-auto p-4 md:p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => router.back()}
-          className="flex-1 border rounded py-2"
+          className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 text-slate-400 hover:text-indigo-600 transition hover:scale-105 active:scale-95"
         >
-          戻る
+          <ChevronLeft className="w-6 h-6" />
         </button>
-        <button
-          onClick={handleUpdate}
-          disabled={loading}
-          className="flex-1 bg-indigo-600 text-white rounded py-2"
-        >
-          更新
-        </button>
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+            立て替え編集
+          </h2>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+            Expense
+          </p>
+        </div>
       </div>
-    </main>
+
+      {/* Form */}
+      <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 p-8 space-y-8">
+        {/* 内容 */}
+        <div className="space-y-3">
+          <label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">
+            内容
+          </label>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="例: 昼食代"
+            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-lg font-bold text-slate-800"
+          />
+        </div>
+
+        {/* 金額 */}
+        <div className="space-y-3">
+          <label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">
+            金額
+          </label>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+            placeholder="例: 1200"
+            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-lg font-bold text-slate-800"
+          />
+        </div>
+
+        {/* 支払者 */}
+        <div className="space-y-3">
+          <label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">
+            立て替えた人
+          </label>
+          <select
+            value={payerId}
+            onChange={(e) => setPayerId(e.target.value)}
+            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-lg font-bold text-slate-800"
+          >
+            <option value="">選択してください</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 参加者 */}
+        <div className="space-y-3">
+          <label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">
+            参加者
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {members.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => toggleParticipant(m.id)}
+                className={`px-4 py-2 rounded-2xl border font-semibold ${
+                  participants.includes(m.id)
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-slate-50 text-slate-700 border-slate-200"
+                } transition`}
+              >
+                {m.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 操作ボタン */}
+        <div className="flex gap-4 pt-4">
+          <button
+            onClick={() => router.back()}
+            className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-lg font-bold transition"
+          >
+            キャンセル
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-lg font-bold shadow-xl shadow-indigo-100 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+          >
+            <Save className="w-5 h-5" />
+            更新する
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default GroupEditPage;
+export default ExpenseEditPage;
