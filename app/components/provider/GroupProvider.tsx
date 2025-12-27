@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useState,
   useEffect,
@@ -18,33 +18,34 @@ export type GroupData = {
 };
 
 export type GroupContextType = {
-  groups: GroupData[];
-  setGroups: Dispatch<SetStateAction<GroupData[]>>;
+  groups: GroupData[] | null | undefined;
+  setGroups: Dispatch<SetStateAction<GroupData[] | null | undefined>>;
 };
 
-export const GroupContext = createContext<GroupContextType>(
-  {} as GroupContextType
-);
+export const GroupContext = createContext<GroupContextType>({
+  groups: undefined,
+  setGroups: () => {},
+});
 
 const GroupProviderComponent = ({ children }: { children: ReactNode }) => {
-  const [groups, setGroups] = useState<GroupData[]>([]);
+  const [groups, setGroups] = useState<GroupData[] | null | undefined>(
+    undefined
+  );
 
-  //初期読み込み
+  // 初回ロード
   useEffect(() => {
-    const savedGroups = localStorage.getItem("groups");
-    if (savedGroups) {
-      try {
-        setGroups(JSON.parse(savedGroups));
-      } catch (e) {
-        console.error("Failed to parse groups:", e);
-      }
-    }
+    const saved = localStorage.getItem("groups");
+    setGroups(saved ? JSON.parse(saved) : []);
   }, []);
 
-  //変更時に localStorage 保存
+  // groups が変わったら localStorage に保存
   useEffect(() => {
-    localStorage.setItem("groups", JSON.stringify(groups));
+    if (groups !== undefined) {
+      localStorage.setItem("groups", JSON.stringify(groups));
+    }
   }, [groups]);
+
+  if (groups === undefined) return null;
 
   return (
     <GroupContext.Provider value={{ groups, setGroups }}>

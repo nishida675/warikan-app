@@ -1,17 +1,24 @@
 "use client";
 
 import { useState, useContext } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Loading from "@/app/loading";
-import { useProjectId } from "@/app/components/hooks/useProjectId";
 import { GroupContext } from "@/app/components/provider/GroupProvider";
 import { addExpense } from "@/app/components/model/addExpense";
 
 export default function ExpenseNewPage() {
   const router = useRouter();
-  const { projectId: currentId } = useProjectId();
+  const params = useParams();
+  const currentId =
+    params.projectId && typeof params.projectId === "string"
+      ? params.projectId
+      : Array.isArray(params.projectId)
+      ? params.projectId[0]
+      : null;
   const { groups } = useContext(GroupContext);
-  const currentGroup = groups.find(group => group.projectId === currentId);
+  const currentGroup = (groups ?? []).find(
+    (group) => group.projectId === currentId
+  );
   const members = currentGroup?.members || [];
 
   const [payer, setPayer] = useState("");
