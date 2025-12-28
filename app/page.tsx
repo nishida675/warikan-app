@@ -8,12 +8,14 @@ const STEP_IMAGES = ["/createGroup.png", "/expense.png", "/url.png"];
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#FFFBEB] text-slate-900 font-sans tracking-tight leading-relaxed scroll-smooth relative overflow-hidden">
-      
       {/* 背景のドット装飾 */}
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_2px,transparent_2px)] [background-size:30px_30px] opacity-50 -z-10" />
-      
+
       {/* 浮遊する装飾パーツ */}
-      <div className="absolute top-20 left-[5%] w-20 h-20 bg-yellow-300 rounded-full border-4 border-slate-900 -z-10 animate-bounce" style={{ animationDuration: '3s' }} />
+      <div
+        className="absolute top-20 left-[5%] w-20 h-20 bg-yellow-300 rounded-full border-4 border-slate-900 -z-10 animate-bounce"
+        style={{ animationDuration: "3s" }}
+      />
       <div className="absolute top-40 right-[10%] w-12 h-12 bg-cyan-300 border-4 border-slate-900 rotate-12 -z-10" />
 
       {/* Hero Section */}
@@ -116,7 +118,9 @@ export default function Home() {
                 className={`p-8 rounded-[32px] border-4 border-slate-900 ${f.color} shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] hover:-rotate-2 transition-transform`}
               >
                 <div className="text-5xl mb-6">{f.icon}</div>
-                <h3 className="font-black text-2xl mb-4 leading-tight">{f.title}</h3>
+                <h3 className="font-black text-2xl mb-4 leading-tight">
+                  {f.title}
+                </h3>
                 <p className="font-bold text-slate-800 leading-relaxed text-sm">
                   {f.desc}
                 </p>
@@ -128,23 +132,48 @@ export default function Home() {
 
       {/* How to use section */}
       <section id="how-to-use" className="max-w-6xl mx-auto px-6 py-24">
-        <h2 className="text-center mb-16">
-            <span className="text-4xl md:text-5xl font-black bg-slate-900 text-white px-8 py-3 rounded-full shadow-[8px_8px_0px_0px_rgba(34,197,94,1)]">
-              使いかた3ステップ
-            </span>
+        <h2 className="text-center mb-12 px-4">
+          <span
+            className="
+              inline-block
+              text-2xl sm:text-3xl md:text-5xl
+              font-black
+              bg-slate-900 text-white
+              px-4 sm:px-6 md:px-8
+              py-2 sm:py-3
+              rounded-2xl sm:rounded-full
+              shadow-[6px_6px_0px_0px_rgba(34,197,94,1)]
+              leading-tight
+              break-words
+            "
+          >
+            使いかた3ステップ
+          </span>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {[
-            { step: "01", title: "グループ作成", desc: "イベント名を入れるだけ！" },
-            { step: "02", title: "金額を入力", desc: "立て替えた人をポチポチ選ぶ！" },
-            { step: "03", title: "URLを共有", desc: "LINEで送って清算おわり！" },
+            {
+              step: "01",
+              title: "グループ作成",
+              desc: "イベント名を入れるだけ！",
+            },
+            {
+              step: "02",
+              title: "金額を入力",
+              desc: "立て替えた人をポチポチ選ぶ！",
+            },
+            {
+              step: "03",
+              title: "URLを共有",
+              desc: "LINEで送って清算おわり！",
+            },
           ].map((s, i) => (
             <div key={i} className="relative flex flex-col items-center group">
               <div className="absolute -top-6 -left-2 text-7xl font-black text-slate-900/10 -z-10 group-hover:text-orange-500/20 transition-colors">
                 {s.step}
               </div>
-              
+
               <div className="mb-8 w-full aspect-[4/5] rounded-[40px] border-4 border-slate-900 bg-white shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden p-6 relative group-hover:rotate-2 transition-transform">
                 <Image
                   src={STEP_IMAGES[i] || "/placeholder-step.png"}
@@ -167,11 +196,13 @@ export default function Home() {
           <div className="absolute -top-12 -right-8 w-24 h-24 bg-orange-500 rounded-full border-4 border-slate-900 flex items-center justify-center text-4xl rotate-12">
             🔥
           </div>
-          
+
           <h3 className="text-3xl md:text-5xl font-black mb-8 leading-tight">
-            さあ、面倒な計算から<br />卒業しよう！
+            さあ、面倒な計算から
+            <br />
+            卒業しよう！
           </h3>
-          
+
           <ButtonNavigate
             href="/GroupCreation"
             className="
@@ -182,10 +213,8 @@ export default function Home() {
           >
             無料で今すぐはじめる！ 👈
           </ButtonNavigate>
-          
-          <p className="mt-8 font-bold text-slate-700">
-            登録不要・ずっと無料
-          </p>
+
+          <p className="mt-8 font-bold text-slate-700">登録不要・ずっと無料</p>
         </div>
       </section>
     </main>
