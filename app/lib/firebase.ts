@@ -19,6 +19,9 @@ export const collectionName = "warikan"; // Firestoreコレクション名
 //アプリ起動時に匿名ログインする関数
 export const initAnonymousAuth = async () => {
   try {
+    if (auth.currentUser) {
+      return auth.currentUser.getIdToken();
+    }
     const userCredential = await signInAnonymously(auth);
      const user = userCredential.user;
     //IDトークンを取得
