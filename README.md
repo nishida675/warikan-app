@@ -45,8 +45,18 @@ http://localhost:3000
         プライバシーポリシー
       - terms  
         利用規約
-  - components
+  - components  
+    部品の集合  
+    - hooks  
+    - model  
+      DBとのやりとり  
+    - provider  
+      プロバイダー  
+    - ui  
+      uiの部品の集まり  
+      
   - lib
+    firebaseの設定
        
       
     
