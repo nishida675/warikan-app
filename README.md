@@ -57,6 +57,40 @@ http://localhost:3000
       
   - lib
     firebaseの設定
-       
-      
+
+## シーケンス図
+
+### グループ作成処理
+![グループ作成シーケンス図](public/SequenceDiagram/GroupCreatingProcess.svg)
+
+---
+
+### 匿名認証初期化処理
+
+#### グループ作成ページ
+![匿名認証初期化処理グループ作成ページシーケンス図](public/SequenceDiagram/AnonymousLoginProcess.svg)
+
+#### グループページ
+![匿名認証初期化処理グループページシーケンス図](public/SequenceDiagram/AnonymousLoginProcess-1.svg)
+
+---
+
+### CRUD処理
+
+#### データ取得
+![データ取得処理シーケンス図](public/SequenceDiagram/crudProcess.svg)
+
+#### 支出追加
+![支出追加処理シーケンス図](public/SequenceDiagram/crudProcess-1.svg)
+
+#### 支出編集
+![支出編集処理シーケンス図](public/SequenceDiagram/crudProcess-2.svg)
+
+#### 支出削除
+![支出削除処理シーケンス図](public/SequenceDiagram/crudProcess-3.svg)
+
+#### プロジェクト編集
+![プロジェクト編集処理シーケンス図](public/SequenceDiagram/crudProcess-4.svg)
+
+  
     
