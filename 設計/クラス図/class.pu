@@ -1,0 +1,96 @@
+@startuml クラス図
+title クラス図
+left to right direction
+
+package "凡例" {
+    a --|> b : 継承
+    a ..> b : 依存
+    a *-- b : 構成
+}
+
+
+class homePage {
+}
+
+package "page" {
+    class Group {
+    }
+    class expense.new{
+    }
+    class expense.edit{
+    }
+    class groupEdit {
+    }
+    class GroupCreatingSuccessful {
+    }
+    class GroupCreation {
+    }
+    class legal.privacy {
+    }
+    class legal.terms {
+    }
+}
+package "component" {
+    package "model" {
+        class addExpense {
+        }
+        class createGroup {
+        }
+        class DeleteExpense {
+        }
+        class GetProjectData {
+        }
+        class updateExpense {
+        }
+        class updateGroup {
+        }
+        class updateUsers {
+        }
+    }
+    package provaider {
+        class AuthProvider {
+        }
+    }
+    class calculateSettlements {
+    }
+    package "layout" {
+    class Footer {
+    }
+    class Header {
+    }
+    }
+}
+package "library" {
+    class firebase {
+    }
+}
+
+homePage ..> GroupCreation
+homePage ..> privacy
+homePage ..> terms
+GroupCreation ..> GroupCreatingSuccessful
+GroupCreation ..> Group
+Group ..> edit
+Group ..> new
+Group ..> groupEdit
+page ..> layout
+
+
+GroupCreation ..> AuthProvider : useAuth()
+AuthProvider ..> firebase : initAnonymousAuth()
+Group ..> calculateSettlements
+
+Group ..> AuthProvider : useAuth()
+Group ..> GetProjectData 
+Group ..> DeleteExpense
+
+GroupCreation ..> createGroup
+
+edit ..> updateExpense
+new ..> addExpense
+groupEdit ..> updateGroup
+groupEdit ..> updateUsers
+
+
+
+@enduml

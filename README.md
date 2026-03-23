@@ -93,4 +93,6 @@ http://localhost:3000
 ![プロジェクト編集処理シーケンス図](public/SequenceDiagram/crudProcess-4.svg)
 
   
-    
+### クラス図
+
+![クラス図](/public/class/クラス図.png)
